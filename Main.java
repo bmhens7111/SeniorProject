@@ -18,7 +18,12 @@ public class Main {
 	public static JTable getTable(Connection conn) {
 		JTable table = new JTable();
 		String[] columnNames = { "ID", "Name", "Quantity"};
-		DefaultTableModel model = new DefaultTableModel(columnNames, 0);
+		DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
+		};
 		String sql = "select * from items";
 		try {
 			PreparedStatement preparedStatement = conn.prepareStatement(sql);

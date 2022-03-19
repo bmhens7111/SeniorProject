@@ -18,8 +18,20 @@ public class HomePage extends JFrame {
 		JTextField searchBar = new JTextField("Search");
 		String[] sortByStrings = { "ID", "Name", "Quantity", "Date Added"};
 		JComboBox sortByMenu = new JComboBox(sortByStrings);
+		
 		JScrollPane scrollPane = new JScrollPane();
 		JTable table = Main.getTable(conn);
+		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		table.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent me) {
+				if (me.getClickCount() == 2) {
+					JTable clicked = (JTable)me.getSource();
+					int row = clicked.getSelectedRow();
+					int column = 0;
+					UpdateMenu upMenu = new UpdateMenu(conn, (String) table.getValueAt(row, column));
+				}
+			}
+		});
 		scrollPane.setViewportView(table);
 		
 		JButton newButton = new JButton(addIcon("/newButton.png"));

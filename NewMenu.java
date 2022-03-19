@@ -20,7 +20,7 @@ public class NewMenu extends JFrame {
 		JLabel nameLabel = new JLabel("Enter the item's name: ");
 		JLabel quantityLabel = new JLabel("How many of this item are you adding?: ");
 		JTextField idField = new JTextField("", 30);
-		JTextField nameField = new JTextField("", 30);
+		JTextField nameField = new JTextField("", 50);
 		JTextField quantityField = new JTextField("", 30);
 		JButton addButton = new JButton("Add Item");
 		addButton.addActionListener(
