@@ -4,10 +4,19 @@ import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
 import javax.swing.*;
+import javax.swing.table.*;
 
 public class HomePage extends JFrame {
 	Color frameColor = new Color(188, 225, 251);
 	GridBagConstraints c = new GridBagConstraints();
+	JTable table = new JTable();
+	String[] columnNames = { "ID", "Name", "Quantity"};
+	DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
+		@Override
+		public boolean isCellEditable(int row, int column) {
+			return false;
+		}
+	};
 
 	public HomePage(Connection conn) {
 		super();
@@ -16,11 +25,18 @@ public class HomePage extends JFrame {
 		JPanel homePane = new JPanel(new GridBagLayout());
 		JPanel buttonPane;
 		JTextField searchBar = new JTextField("Search");
+		searchBar.addActionListener(
+				new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						table.setModel(searchModel(conn, searchBar.getText()));
+					}
+				}
+		);
 		String[] sortByStrings = { "ID", "Name", "Quantity", "Date Added"};
-		JComboBox sortByMenu = new JComboBox(sortByStrings);
+		JComboBox<String> sortByMenu = new JComboBox<String>(sortByStrings);
 		
 		JScrollPane scrollPane = new JScrollPane();
-		JTable table = Main.getTable(conn);
+		table.setModel(getModel(conn));
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent me) {
@@ -28,7 +44,7 @@ public class HomePage extends JFrame {
 					JTable clicked = (JTable)me.getSource();
 					int row = clicked.getSelectedRow();
 					int column = 0;
-					UpdateMenu upMenu = new UpdateMenu(conn, (String) table.getValueAt(row, column));
+					new UpdateMenu(conn, (String) table.getValueAt(row, column));
 				}
 			}
 		});
@@ -69,8 +85,7 @@ public class HomePage extends JFrame {
 		refreshButton.addActionListener(
 				new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						HomePage.this.dispose();
-						HomePage updatedHomePage = new HomePage(conn);
+						table.setModel(getModel(conn));
 					}
 				}
 		);
@@ -105,6 +120,50 @@ public class HomePage extends JFrame {
 		pack();
 		setLocationRelativeTo(null);
 		setVisible(true);
+	}
+	private TableModel searchModel(Connection conn, String param) {
+		model.setRowCount(0);
+		String sql = "select * from items where id like ? or name like ? or quantity like ?";
+		try {
+			PreparedStatement preparedStatement = conn.prepareStatement(sql);
+			preparedStatement.setString(1, "%" + param + "%");
+			preparedStatement.setString(2, "%" + param + "%");
+			preparedStatement.setString(3, "%" + param + "%");
+			ResultSet result = preparedStatement.executeQuery();
+			String id, name, quantity;
+			while (result.next()) {
+				id = result.getString(1);
+				name = result.getString(2);
+				quantity = result.getString(3);
+				String[] row = {id, name, quantity};
+				model.addRow(row);
+			}
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return model;
+	}
+	
+	private TableModel getModel(Connection conn) {
+		model.setRowCount(0);
+		String sql = "select * from items";
+		try {
+			PreparedStatement preparedStatement = conn.prepareStatement(sql);
+			ResultSet result = preparedStatement.executeQuery();
+			String id, name, quantity;
+			while (result.next()) {
+				id = result.getString(1);
+				name = result.getString(2);
+				quantity = result.getString(3);
+				String[] row = {id, name, quantity};
+				model.addRow(row);
+			}
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return model;
 	}
 	
 	public ImageIcon addIcon(String name) {
