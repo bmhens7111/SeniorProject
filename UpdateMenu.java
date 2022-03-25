@@ -12,11 +12,10 @@ public class UpdateMenu extends JFrame {
 	public UpdateMenu(Connection conn, String id) {
 		super();
 		setTitle("Update Item Properties");
-		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		JPanel updatePane = new JPanel(new GridBagLayout());
 		JPanel idPane, namePane, quantityPane;
 		final String ID = new String(id);
-		String newId = "";
 		String name = "";
 		String quantity = "";
 		

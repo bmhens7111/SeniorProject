@@ -12,7 +12,7 @@ public class EditMenu extends JFrame {
 	public EditMenu(Connection conn) {
 		super();
 		setTitle("Enter an Item to Edit");
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		JPanel editPane = new JPanel(new GridBagLayout());
 		JPanel idPane;
 		
@@ -23,7 +23,7 @@ public class EditMenu extends JFrame {
 				new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						String id = idField.getText();
-						UpdateMenu upMenu = new UpdateMenu(conn, id);
+						new UpdateMenu(conn, id);
 						EditMenu.this.dispose();
 					}
 				}

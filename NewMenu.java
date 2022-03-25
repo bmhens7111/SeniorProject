@@ -12,7 +12,7 @@ public class NewMenu extends JFrame {
 	public NewMenu(Connection conn) {
 		super();
 		setTitle("Add a New Item");
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		JPanel newPane = new JPanel(new GridBagLayout());
 		JPanel idPane, namePane, quantityPane;
 		

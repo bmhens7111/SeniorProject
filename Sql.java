@@ -52,5 +52,41 @@ public class Sql {
 			e.printStackTrace();
 		}
 	}
+
+	public static void deleteFrom(Connection conn, String id) {
+		try {
+			String sql = "delete from items where id=?";
+			PreparedStatement preparedStatement = conn.prepareStatement(sql);
+			preparedStatement.setString(1, id);
+			preparedStatement.executeUpdate();
+		}
+		catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public static ResultSet sortBy(Connection conn, String param) {
+		ResultSet rs = null;
+		String sql;
+		try {
+			if (param == "ID") {
+				sql = "select * from Items order by id desc";
+			}
+			else if (param == "Name"){
+				sql = "select * from Items order by name desc";
+			}
+			else {
+				sql = "select * from Items order by quantity desc";
+			}
+			PreparedStatement preparedStatement = conn.prepareStatement(sql);
+			rs = preparedStatement.executeQuery();
+		}
+		catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return rs;
+	}
 	
 }

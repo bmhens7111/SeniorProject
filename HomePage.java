@@ -24,6 +24,7 @@ public class HomePage extends JFrame {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		JPanel homePane = new JPanel(new GridBagLayout());
 		JPanel buttonPane;
+		
 		JTextField searchBar = new JTextField("Search");
 		searchBar.addActionListener(
 				new ActionListener() {
@@ -32,8 +33,25 @@ public class HomePage extends JFrame {
 					}
 				}
 		);
-		String[] sortByStrings = { "ID", "Name", "Quantity", "Date Added"};
+		searchBar.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent me) {
+				if (searchBar.isFocusOwner()) {
+					searchBar.setText("");
+				}
+			}
+		});
+		
+		String[] sortByStrings = { "ID", "Name", "Quantity"};
 		JComboBox<String> sortByMenu = new JComboBox<String>(sortByStrings);
+		sortByMenu.addActionListener(
+				new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						String param = (String)sortByMenu.getSelectedItem();
+						table.setModel(sortModel(conn, param));
+					}
+				}
+		);
+		
 		
 		JScrollPane scrollPane = new JScrollPane();
 		table.setModel(getModel(conn));
@@ -121,6 +139,26 @@ public class HomePage extends JFrame {
 		setLocationRelativeTo(null);
 		setVisible(true);
 	}
+	
+	protected TableModel sortModel(Connection conn, String param) {
+		model.setRowCount(0);
+		try {
+			ResultSet result = Sql.sortBy(conn, param);
+			String id, name, quantity;
+			while (result.next()) {
+				id = result.getString(1);
+				name = result.getString(2);
+				quantity = result.getString(3);
+				String[] row = {id, name, quantity};
+				model.addRow(row);
+			}
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return model;
+	}
+	
 	private TableModel searchModel(Connection conn, String param) {
 		model.setRowCount(0);
 		String sql = "select * from items where id like ? or name like ? or quantity like ?";
