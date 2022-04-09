@@ -2,6 +2,12 @@ package database;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.*;
 import javax.swing.*;
 import javax.swing.table.*;
@@ -10,16 +16,18 @@ public class HomePage extends JFrame {
 	Color frameColor = new Color(188, 225, 251);
 	GridBagConstraints c = new GridBagConstraints();
 	JTable table = new JTable();
-	String[] columnNames = { "ID", "Name", "Quantity"};
+	String[] columnNames = { "ID", "Name", "Quantity", "Tags", "Date Added"};
 	DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
 		@Override
 		public boolean isCellEditable(int row, int column) {
 			return false;
 		}
 	};
+	Connection writeConn;
 
 	public HomePage(Connection conn) {
 		super();
+		setConnection(conn);
 		setTitle("Inventory Manager");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		JPanel homePane = new JPanel(new GridBagLayout());
@@ -41,7 +49,7 @@ public class HomePage extends JFrame {
 			}
 		});
 		
-		String[] sortByStrings = { "ID", "Name", "Quantity"};
+		String[] sortByStrings = { "ID", "Name", "Quantity", "DateAdded"};
 		JComboBox<String> sortByMenu = new JComboBox<String>(sortByStrings);
 		sortByMenu.addActionListener(
 				new ActionListener() {
@@ -62,7 +70,7 @@ public class HomePage extends JFrame {
 					JTable clicked = (JTable)me.getSource();
 					int row = clicked.getSelectedRow();
 					int column = 0;
-					new UpdateMenu(conn, (String) table.getValueAt(row, column));
+					new UpdateMenu(conn, (int) table.getValueAt(row, column));
 				}
 			}
 		});
@@ -108,11 +116,41 @@ public class HomePage extends JFrame {
 				}
 		);
 		
+		JButton undoButton = new JButton("UNDO");
+		undoButton.setBorder(null);
+		/*undoButton.addActionListener(
+				new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						table.setModel(getModel(conn));
+					}
+				}
+		);
+		*/
+		
+		JButton exportButton = new JButton("EXPORT");
+		exportButton.setBorder(null);
+		exportButton.addActionListener(
+				new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						try {
+							exportToFile("inventory");
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+					}
+				}
+		);
+		
+		//Add UNDO AND EXPORT BUTTONS HERE
+		
 		buttonPane = new JPanel();
 		buttonPane.add(newButton);
 		buttonPane.add(deleteButton);
 		buttonPane.add(editButton);
 		buttonPane.add(refreshButton);
+		buttonPane.add(undoButton);
+		buttonPane.add(exportButton);
 		buttonPane.setBackground(frameColor);
 		
 		c.fill = GridBagConstraints.HORIZONTAL;
@@ -144,12 +182,14 @@ public class HomePage extends JFrame {
 		model.setRowCount(0);
 		try {
 			ResultSet result = Sql.sortBy(conn, param);
-			String id, name, quantity;
+			String id, name, quantity, tags, dateAdded;
 			while (result.next()) {
 				id = result.getString(1);
 				name = result.getString(2);
 				quantity = result.getString(3);
-				String[] row = {id, name, quantity};
+				tags = result.getString(4);
+				dateAdded = result.getString(5);
+				String[] row = {id, name, quantity, tags, dateAdded};
 				model.addRow(row);
 			}
 		} 
@@ -161,19 +201,23 @@ public class HomePage extends JFrame {
 	
 	private TableModel searchModel(Connection conn, String param) {
 		model.setRowCount(0);
-		String sql = "select * from items where id like ? or name like ? or quantity like ?";
+		String sql = "select * from items where id like ? or name like ? or quantity like ? or tags like ? or DateAdded like ?";
 		try {
 			PreparedStatement preparedStatement = conn.prepareStatement(sql);
 			preparedStatement.setString(1, "%" + param + "%");
 			preparedStatement.setString(2, "%" + param + "%");
 			preparedStatement.setString(3, "%" + param + "%");
+			preparedStatement.setString(4, "%" + param + "%");
+			preparedStatement.setString(5, "%" + param + "%");
 			ResultSet result = preparedStatement.executeQuery();
-			String id, name, quantity;
+			String id, name, quantity, tags, dateAdded;
 			while (result.next()) {
 				id = result.getString(1);
 				name = result.getString(2);
 				quantity = result.getString(3);
-				String[] row = {id, name, quantity};
+				tags = result.getString(4);
+				dateAdded = result.getString(5);
+				String[] row = {id, name, quantity, tags, dateAdded};
 				model.addRow(row);
 			}
 		} 
@@ -189,12 +233,14 @@ public class HomePage extends JFrame {
 		try {
 			PreparedStatement preparedStatement = conn.prepareStatement(sql);
 			ResultSet result = preparedStatement.executeQuery();
-			String id, name, quantity;
+			String id, name, quantity, tags, dateAdded;
 			while (result.next()) {
 				id = result.getString(1);
 				name = result.getString(2);
 				quantity = result.getString(3);
-				String[] row = {id, name, quantity};
+				tags = result.getString(4);
+				dateAdded = result.getString(5);
+				String[] row = {id, name, quantity, tags, dateAdded};
 				model.addRow(row);
 			}
 		} 
@@ -207,6 +253,44 @@ public class HomePage extends JFrame {
 	public ImageIcon addIcon(String name) {
 		ImageIcon icon = new ImageIcon(this.getClass().getResource(name));
 		return icon;
+	}
+	
+	public void setConnection(Connection conn) {
+		writeConn = conn;
+	}
+	
+	public Connection getConnection() {
+		return writeConn;
+	}
+	
+	public void exportToFile(String fileName) throws IOException {
+		String path = System.getProperty("user.home");
+	    FileWriter fileWriter = new FileWriter(path+"\\Desktop\\"+ fileName + ".csv");
+	    PrintWriter printWriter = new PrintWriter(fileWriter);
+	    TableModel writeModel = getModel(getConnection());
+	    String text = "";
+	    for (String value: columnNames) {
+	    	printWriter.print(value + ",");
+	    }
+	    printWriter.println();
+	    
+	    for (int row=0; row<writeModel.getRowCount(); row++) {
+	    	for (int col=0; col<writeModel.getColumnCount(); col++) {
+	    		text = (String) writeModel.getValueAt(row, col);
+	    		if (col == writeModel.getColumnCount()-1) {
+	    			printWriter.print(text);
+	    		}
+	    		else if (col == writeModel.getColumnCount()-2) {
+	    			printWriter.print("\"" + text + "\"" + ",");
+	    		}
+	    		else {
+	    			printWriter.print(text + ",");
+	    		}
+	    	}
+	    	printWriter.println();
+	    }
+	    printWriter.close();
+	    System.out.println("File " + fileName + " created");
 	}
 
 }

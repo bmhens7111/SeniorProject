@@ -22,7 +22,7 @@ public class EditMenu extends JFrame {
 		editButton.addActionListener(
 				new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						String id = idField.getText();
+						int id = Integer.parseInt(idField.getText());
 						new UpdateMenu(conn, id);
 						EditMenu.this.dispose();
 					}

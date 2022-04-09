@@ -33,6 +33,7 @@ public class LoginScreen extends JFrame {
 						String password = passInput.getText();
 						try {
 							conn = DriverManager.getConnection(connUrl, username, password);
+							System.out.println("login successfull");
 							LoginScreen.this.dispose();
 							Main.createHomePage(conn);
 						}

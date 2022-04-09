@@ -22,7 +22,7 @@ public class DeleteMenu extends JFrame {
 		deleteButton.addActionListener(
 				new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						String id = idField.getText();
+						int id = Integer.parseInt(idField.getText());
 						Sql.deleteFrom(conn, id);
 						DeleteMenu.this.dispose();
 					}

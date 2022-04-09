@@ -3,51 +3,70 @@ package database;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
+import java.util.List;
+
 import javax.swing.*;
 
 public class UpdateMenu extends JFrame {
 	Color frameColor = new Color(188, 225, 251);
 	GridBagConstraints c = new GridBagConstraints();
 
-	public UpdateMenu(Connection conn, String id) {
+	public UpdateMenu(Connection conn, int id) {
 		super();
 		setTitle("Update Item Properties");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		JPanel updatePane = new JPanel(new GridBagLayout());
 		JPanel idPane, namePane, quantityPane;
-		final String ID = new String(id);
-		String name = "";
-		String quantity = "";
-		
 		JLabel idLabel = new JLabel("Update ID Number: ");
 		JLabel nameLabel = new JLabel("Update Name: ");
 		JLabel quantityLabel = new JLabel("Update Quantity: ");
-		ResultSet result = Sql.selectWhereId(conn, id);
-		System.out.println(result);
+		final int oldID = id;
+		int newID = 0;
+		String name = "";
+		int quantity = 0;
 		try {
-			while (result.next()) {
-				id = result.getString(1);
-				name = result.getString(2);
-				quantity = result.getString(3);
-			}
+			ResultSet result = Sql.selectWhereId(conn, id);
+			result.next();
+			id = result.getInt(1);
+			name = result.getString(2);
+			quantity = result.getInt(3);
 		}
 		catch (SQLException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		
-		JTextField idField = new JTextField(id, 30);
+		JTextField idField = new JTextField(String.valueOf(oldID), 50);	
 		JTextField nameField = new JTextField(name, 50);
-		JTextField quantityField = new JTextField(quantity, 30);
+		JTextField quantityField = new JTextField(String.valueOf(quantity), 50);
+		
+		String[] tags = {"Beverage", "Bread", "Canned", "Dairy", "Frozen",
+				"Meat", "Produce", "Toiletries", "Other"};
+		DefaultListModel<String> model = new DefaultListModel<String>();
+		for (String element: tags) {
+			model.addElement(element);
+		}
+		JList tagList = new JList(model);
+		tagList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		JButton updateButton = new JButton("Save Changes");
 		updateButton.addActionListener(
 				new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						String newId = idField.getText();
+						int newId = Integer.parseInt(idField.getText());
 						String name = nameField.getText();
-						String quantity  = quantityField.getText();
-						Sql.update(conn, ID, newId, name, quantity);
-						UpdateMenu.this.dispose();
+						int quantity  = Integer.parseInt(quantityField.getText());
+						Item item = new Item();
+						item.setId(oldID);
+						item.setName(name);
+						item.setQuantity(quantity);
+						List selected = tagList.getSelectedValuesList();
+						for (int i=0; i < selected.size(); i++) {
+						    item.setTags(i, (String) selected.get(i));
+						}
+						if (item.checkValid(item)) {
+							Sql.update(conn, item, newId);
+							UpdateMenu.this.dispose();
+						}
 					}
 				}
 		);
@@ -75,8 +94,10 @@ public class UpdateMenu extends JFrame {
 		updatePane.add(namePane, c);
 		c.gridy = 2;
 		updatePane.add(quantityPane, c);
-		c.anchor = GridBagConstraints.LAST_LINE_END;
 		c.gridy = 3;
+		updatePane.add(tagList, c);
+		c.anchor = GridBagConstraints.LAST_LINE_END;
+		c.gridy = 4;
 		updatePane.add(updateButton, c);
 		
 		
