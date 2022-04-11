@@ -23,8 +23,37 @@ public class DeleteMenu extends JFrame {
 				new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						int id = Integer.parseInt(idField.getText());
-						Sql.deleteFrom(conn, id);
-						DeleteMenu.this.dispose();
+						try {
+							ResultSet rs = Sql.selectWhereId(conn, id);
+							rs.next();
+							Item item = new Item();
+							item.setId(rs.getInt(1));
+							item.setName(rs.getString(2));
+							item.setQuantity(rs.getInt(3));
+							String tag = "";
+							String tagResult = rs.getString(4);
+							int tagIndex = 0;
+							for (int i=0; i<tagResult.length(); i++) {
+								if (tagResult.charAt(i) == ' ' || i==tagResult.length()-1) {
+									//Do Nothing
+								}
+								else if (tagResult.charAt(i) == ',') {
+									item.setTags(tagIndex, tag);
+									tagIndex++;
+									tag = "";
+								}
+								else {
+									tag = tag + (tagResult.charAt(i));
+								}
+							}
+							HomePage.createLastAction(item, LastAction.Type.DELETE);
+							Sql.deleteFrom(conn, id);
+							DeleteMenu.this.dispose();
+						}
+						catch (SQLException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
 					}
 				}
 		);

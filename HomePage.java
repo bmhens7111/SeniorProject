@@ -24,6 +24,7 @@ public class HomePage extends JFrame {
 		}
 	};
 	Connection writeConn;
+	static LastAction last;
 
 	public HomePage(Connection conn) {
 		super();
@@ -118,14 +119,14 @@ public class HomePage extends JFrame {
 		
 		JButton undoButton = new JButton("UNDO");
 		undoButton.setBorder(null);
-		/*undoButton.addActionListener(
+		undoButton.addActionListener(
 				new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						table.setModel(getModel(conn));
+						undoLast(last);
 					}
 				}
 		);
-		*/
+		
 		
 		JButton exportButton = new JButton("EXPORT");
 		exportButton.setBorder(null);
@@ -255,6 +256,15 @@ public class HomePage extends JFrame {
 		return icon;
 	}
 	
+	public void undoLast(LastAction last) {
+		if (last.getType() == LastAction.Type.DELETE) {
+			Sql.insert(writeConn, last.getItem());
+		}
+		else { //Last Action was update action
+			Sql.update(writeConn, last.getItem(), last.getItem().getId());
+		}
+	}
+	
 	public void setConnection(Connection conn) {
 		writeConn = conn;
 	}
@@ -291,6 +301,11 @@ public class HomePage extends JFrame {
 	    }
 	    printWriter.close();
 	    System.out.println("File " + fileName + " created");
+	}
+
+	public static void createLastAction(Item item, LastAction.Type type) {
+		// TODO Auto-generated method stub
+		last = new LastAction(item, type);
 	}
 
 }

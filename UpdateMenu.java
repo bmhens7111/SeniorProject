@@ -21,6 +21,7 @@ public class UpdateMenu extends JFrame {
 		JLabel nameLabel = new JLabel("Update Name: ");
 		JLabel quantityLabel = new JLabel("Update Quantity: ");
 		final int oldID = id;
+		Item oldItem = new Item();
 		int newID = 0;
 		String name = "";
 		int quantity = 0;
@@ -30,6 +31,25 @@ public class UpdateMenu extends JFrame {
 			id = result.getInt(1);
 			name = result.getString(2);
 			quantity = result.getInt(3);
+			oldItem.setId(id);
+			oldItem.setName(name);
+			oldItem.setQuantity(quantity);
+			String tag = "";
+			String tagResult = result.getString(4);
+			int tagIndex = 0;
+			for (int i=0; i<tagResult.length(); i++) {
+				if (tagResult.charAt(i) == ' ' || i==tagResult.length()-1) {
+					//Do Nothing
+				}
+				else if (tagResult.charAt(i) == ',') {
+					oldItem.setTags(tagIndex, tag);
+					tagIndex++;
+					tag = "";
+				}
+				else {
+					tag = tag + (tagResult.charAt(i));
+				}
+			}
 		}
 		catch (SQLException e1) {
 			// TODO Auto-generated catch block
@@ -52,6 +72,7 @@ public class UpdateMenu extends JFrame {
 		updateButton.addActionListener(
 				new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
+						HomePage.createLastAction(oldItem, LastAction.Type.UPDATE);
 						int newId = Integer.parseInt(idField.getText());
 						String name = nameField.getText();
 						int quantity  = Integer.parseInt(quantityField.getText());
