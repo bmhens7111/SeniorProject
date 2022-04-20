@@ -12,7 +12,6 @@ public class LastAction {
 	Item item;
 	
 	public LastAction(Item item, Type type) {
-		// TODO Auto-generated constructor stub
 		this.item = item;
 		this.actionType = type;
 	}

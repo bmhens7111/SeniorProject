@@ -5,9 +5,8 @@ import java.awt.event.*;
 import java.sql.*;
 import javax.swing.*;
 
+//Item deletion menu, deletes item with a given ID
 public class DeleteMenu extends JFrame {
-	Color frameColor = new Color(188, 225, 251);
-	GridBagConstraints c = new GridBagConstraints();
 
 	public DeleteMenu(Connection conn) {
 		super();
@@ -24,9 +23,10 @@ public class DeleteMenu extends JFrame {
 					public void actionPerformed(ActionEvent e) {
 						int id = Integer.parseInt(idField.getText());
 						try {
+							//Creates a new item for use by the undo feature
 							ResultSet rs = Sql.selectWhereId(conn, id);
 							rs.next();
-							Item item = new Item();
+							Item item = new Item(1, "", 1, "");
 							item.setId(rs.getInt(1));
 							item.setName(rs.getString(2));
 							item.setQuantity(rs.getInt(3));
@@ -46,12 +46,13 @@ public class DeleteMenu extends JFrame {
 									tag = tag + (tagResult.charAt(i));
 								}
 							}
+							item.setLocation(rs.getString(5));
 							HomePage.createLastAction(item, LastAction.Type.DELETE);
+							HomePage.alreadyDone = false;
 							Sql.deleteFrom(conn, id);
 							DeleteMenu.this.dispose();
 						}
 						catch (SQLException e1) {
-							// TODO Auto-generated catch block
 							e1.printStackTrace();
 						}
 					}
@@ -59,9 +60,10 @@ public class DeleteMenu extends JFrame {
 		);
 		
 		idPane = new JPanel();
-		idPane.setBackground(frameColor);
 		idPane.add(idLabel);
 		idPane.add(idField);
+		
+		GridBagConstraints c = new GridBagConstraints();
 		
 		c.fill = GridBagConstraints.BOTH;
 		c.gridx = 0;

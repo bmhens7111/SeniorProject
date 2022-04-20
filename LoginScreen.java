@@ -6,11 +6,9 @@ import java.sql.*;
 import javax.swing.*;
 
 public class LoginScreen extends JFrame {
-	Color frameColor = new Color(188, 225, 251);
 	GridBagConstraints c = new GridBagConstraints();
-	JLabel warningLabel = new JLabel();
-	Connection conn;
 
+	//Creates the application's login screen
 	public LoginScreen() {
 		super();
 		setTitle("Inventory Manager Login");
@@ -20,10 +18,9 @@ public class LoginScreen extends JFrame {
 		JLabel welcomeText = new JLabel("<html>Welcome to Inventory Management,<br>please enter your login credentials</html>");
 		JLabel userLabel = new JLabel("Username: ");
 		JLabel passLabel = new JLabel("Password: ");
-		JLabel warningLabel = new JLabel("");
 		JTextField userInput = new JTextField("", 30);
 		JTextField passInput = new JTextField("", 30);
-		JButton loginButton = new JButton(addIcon("/loginButton.png"));
+		JButton loginButton = new JButton("login");
 		loginButton.setBorder(null);
 		loginButton.addActionListener(
 				new ActionListener() {
@@ -32,15 +29,15 @@ public class LoginScreen extends JFrame {
 						String username = userInput.getText();
 						String password = passInput.getText();
 						try {
-							conn = DriverManager.getConnection(connUrl, username, password);
-							System.out.println("login successfull");
+							//Database connection is attempted with username and password entered
+							Connection conn = DriverManager.getConnection(connUrl, username, password);
+							System.out.println("LOGIN: Successful login as User: " + username);
 							LoginScreen.this.dispose();
 							Main.createHomePage(conn);
 						}
 						catch (Exception exc){
-							warningLabel.setText("Invalid Username or Password");
-							LoginScreen.this.pack();
-							exc.printStackTrace();
+							System.out.println("LOGIN: Login attempt failed");
+							new Popup("Warning", "Invalid Username or Password");
 						}
 					}
 				}
@@ -51,11 +48,9 @@ public class LoginScreen extends JFrame {
 		
 		userPane.add(userLabel);
 		userPane.add(userInput);
-		userPane.setBackground(frameColor);
 		
 		passPane.add(passLabel);
 		passPane.add(passInput);
-		passPane.setBackground(frameColor);
 		
 		c.weightx = 1;
 		c.weighty = 1;
@@ -67,16 +62,12 @@ public class LoginScreen extends JFrame {
 		c.gridy = 2;
 		loginPane.add(passPane, c);
 		c.gridy = 3;
-		loginPane.add(warningLabel, c);
-		c.gridy = 4;
 		loginPane.add(loginButton, c);
-		loginPane.setBackground(frameColor);
 		
 		add(loginPane);
 		pack();
 		setLocationRelativeTo(null);
 		setVisible(true);
-
 	}
 	
 	public ImageIcon addIcon(String name) {

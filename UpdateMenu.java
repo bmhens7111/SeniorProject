@@ -7,24 +7,25 @@ import java.util.List;
 
 import javax.swing.*;
 
+//Menu for updating an item's properties
 public class UpdateMenu extends JFrame {
-	Color frameColor = new Color(188, 225, 251);
-	GridBagConstraints c = new GridBagConstraints();
 
 	public UpdateMenu(Connection conn, int id) {
 		super();
 		setTitle("Update Item Properties");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		JPanel updatePane = new JPanel(new GridBagLayout());
-		JPanel idPane, namePane, quantityPane;
+		JPanel idPane, namePane, quantityPane, locPane;
 		JLabel idLabel = new JLabel("Update ID Number: ");
 		JLabel nameLabel = new JLabel("Update Name: ");
 		JLabel quantityLabel = new JLabel("Update Quantity: ");
+		JLabel locLabel = new JLabel("Update Location: ");
+		//Text Fields are populated with information of old item
 		final int oldID = id;
-		Item oldItem = new Item();
-		int newID = 0;
+		Item oldItem = new Item(1, "", 1, "");
 		String name = "";
 		int quantity = 0;
+		String location = "";
 		try {
 			ResultSet result = Sql.selectWhereId(conn, id);
 			result.next();
@@ -50,15 +51,17 @@ public class UpdateMenu extends JFrame {
 					tag = tag + (tagResult.charAt(i));
 				}
 			}
+			location  = result.getString(5);
+			oldItem.setLocation(location);
 		}
 		catch (SQLException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		
 		JTextField idField = new JTextField(String.valueOf(oldID), 50);	
 		JTextField nameField = new JTextField(name, 50);
 		JTextField quantityField = new JTextField(String.valueOf(quantity), 50);
+		JTextField locField = new JTextField(location, 50);
 		
 		String[] tags = {"Beverage", "Bread", "Canned", "Dairy", "Frozen",
 				"Meat", "Produce", "Toiletries", "Other"};
@@ -66,7 +69,7 @@ public class UpdateMenu extends JFrame {
 		for (String element: tags) {
 			model.addElement(element);
 		}
-		JList tagList = new JList(model);
+		JList<String> tagList = new JList<String>(model);
 		tagList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		JButton updateButton = new JButton("Save Changes");
 		updateButton.addActionListener(
@@ -76,11 +79,9 @@ public class UpdateMenu extends JFrame {
 						int newId = Integer.parseInt(idField.getText());
 						String name = nameField.getText();
 						int quantity  = Integer.parseInt(quantityField.getText());
-						Item item = new Item();
-						item.setId(oldID);
-						item.setName(name);
-						item.setQuantity(quantity);
-						List selected = tagList.getSelectedValuesList();
+						String location = locField.getText();
+						Item item = new Item(oldID, name, quantity, location);
+						List<String> selected = tagList.getSelectedValuesList();
 						for (int i=0; i < selected.size(); i++) {
 						    item.setTags(i, (String) selected.get(i));
 						}
@@ -93,19 +94,18 @@ public class UpdateMenu extends JFrame {
 		);
 		
 		idPane = new JPanel();
-		idPane.setBackground(frameColor);
 		idPane.add(idLabel);
 		idPane.add(idField);
 		
 		namePane = new JPanel();
-		namePane.setBackground(frameColor);
 		namePane.add(nameLabel);
 		namePane.add(nameField);
 		
 		quantityPane = new JPanel();
-		quantityPane.setBackground(frameColor);
 		quantityPane.add(quantityLabel);
 		quantityPane.add(quantityField);
+		
+		GridBagConstraints c = new GridBagConstraints();
 		
 		c.fill = GridBagConstraints.BOTH;
 		c.gridx = 0;

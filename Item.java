@@ -8,15 +8,17 @@ public class Item {
 	private String itemName;
 	private int itemQuantity;
 	private String[] itemTags;
+	private String itemLocation;
 	private DateTimeFormatter dtf;
 	private LocalDate dateAdded;
 	private final int TAGSLENGTH = 9;
 
-	public Item() {
-		itemId = 0;
-		itemName = "";
-		itemQuantity = 0;
+	public Item(int id, String name, int quantity, String location) {
+		itemId = id;
+		itemName = name;
+		itemQuantity = quantity;
 		itemTags = new String[9];
+		itemLocation = location;
 		dtf = DateTimeFormatter.ofPattern("MM/dd/uuuu");
 		dateAdded = LocalDate.now();
 	}
@@ -51,7 +53,6 @@ public class Item {
 	
 	public String getTags() {
 		String tagString = "";
-		String temp = "";
 		for (int i=0; i<itemTags.length; i++) {
 			if (itemTags[i] != null && i != TAGSLENGTH) {
 				tagString = tagString.concat(itemTags[i] + ", ");
@@ -64,6 +65,14 @@ public class Item {
 			}
 		}
 		return tagString;
+	}
+	
+	public void setLocation(String location) {
+		itemLocation = location;
+	}
+	
+	public String getLocation() {
+		return itemLocation;
 	}
 	
 	public String getDateAdded() {

@@ -20,9 +20,13 @@ public class Main {
 	public static void createDeleteMenu(Connection conn) {
 		new DeleteMenu(conn);
 	}
-
+	
 	public static void createEditMenu(Connection conn) {
 		new EditMenu(conn);
+	}
+	
+	public static void createExportMenu() {
+		new ExportMenu();
 	}
 
 }

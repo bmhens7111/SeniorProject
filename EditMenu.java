@@ -5,9 +5,8 @@ import java.awt.event.*;
 import java.sql.*;
 import javax.swing.*;
 
+//Menu for determining the item to be edited, creates UpdateMenu with desired item
 public class EditMenu extends JFrame {
-	Color frameColor = new Color(188, 225, 251);
-	GridBagConstraints c = new GridBagConstraints();
 
 	public EditMenu(Connection conn) {
 		super();
@@ -30,9 +29,10 @@ public class EditMenu extends JFrame {
 		);
 		
 		idPane = new JPanel();
-		idPane.setBackground(frameColor);
 		idPane.add(idLabel);
 		idPane.add(idField);
+		
+		GridBagConstraints c = new GridBagConstraints();
 		
 		c.fill = GridBagConstraints.BOTH;
 		c.gridx = 0;

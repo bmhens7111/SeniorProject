@@ -11,19 +11,21 @@ import java.io.PrintWriter;
 import java.sql.*;
 import javax.swing.*;
 import javax.swing.table.*;
+import javax.swing.text.Document;
 
+//The Application's Home Page
 public class HomePage extends JFrame {
-	Color frameColor = new Color(188, 225, 251);
 	GridBagConstraints c = new GridBagConstraints();
-	JTable table = new JTable();
-	String[] columnNames = { "ID", "Name", "Quantity", "Tags", "Date Added"};
-	DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
+	static JTable table = new JTable();
+	static String[] columnNames = { "ID", "Name", "Quantity", "Tags", "Location", "Date Added"};
+	static DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
 		@Override
 		public boolean isCellEditable(int row, int column) {
 			return false;
 		}
 	};
-	Connection writeConn;
+	static boolean alreadyDone = true;
+	static Connection writeConn;
 	static LastAction last;
 
 	public HomePage(Connection conn) {
@@ -38,17 +40,18 @@ public class HomePage extends JFrame {
 		searchBar.addActionListener(
 				new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						table.setModel(searchModel(conn, searchBar.getText()));
+						if (searchBar.getText() == "") {
+							table.setModel(getModel(conn));
+						}
+						else {
+							table.setModel(searchModel(conn, searchBar.getText()));
+						}
 					}
 				}
 		);
-		searchBar.addMouseListener(new MouseAdapter() {
-			public void mouseClicked(MouseEvent me) {
-				if (searchBar.isFocusOwner()) {
-					searchBar.setText("");
-				}
-			}
-		});
+		
+		String[] orderStrings = {"ASC", "DESC"};
+		JComboBox<String> orderByMenu = new JComboBox<String>(orderStrings);
 		
 		String[] sortByStrings = { "ID", "Name", "Quantity", "DateAdded"};
 		JComboBox<String> sortByMenu = new JComboBox<String>(sortByStrings);
@@ -56,11 +59,11 @@ public class HomePage extends JFrame {
 				new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						String param = (String)sortByMenu.getSelectedItem();
-						table.setModel(sortModel(conn, param));
+						String order = (String)orderByMenu.getSelectedItem();
+						table.setModel(sortModel(conn, param, order));
 					}
 				}
 		);
-		
 		
 		JScrollPane scrollPane = new JScrollPane();
 		table.setModel(getModel(conn));
@@ -71,7 +74,7 @@ public class HomePage extends JFrame {
 					JTable clicked = (JTable)me.getSource();
 					int row = clicked.getSelectedRow();
 					int column = 0;
-					new UpdateMenu(conn, (int) table.getValueAt(row, column));
+					new UpdateMenu(conn, Integer.parseInt((String) table.getValueAt(row, column)));
 				}
 			}
 		});
@@ -107,16 +110,6 @@ public class HomePage extends JFrame {
 				}
 		);
 		
-		JButton refreshButton = new JButton(addIcon("/refreshButton.png"));
-		refreshButton.setBorder(null);
-		refreshButton.addActionListener(
-				new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						table.setModel(getModel(conn));
-					}
-				}
-		);
-		
 		JButton undoButton = new JButton("UNDO");
 		undoButton.setBorder(null);
 		undoButton.addActionListener(
@@ -127,42 +120,36 @@ public class HomePage extends JFrame {
 				}
 		);
 		
-		
 		JButton exportButton = new JButton("EXPORT");
 		exportButton.setBorder(null);
 		exportButton.addActionListener(
 				new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						try {
-							exportToFile("inventory");
-						} catch (IOException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
+						Main.createExportMenu();
 					}
 				}
 		);
-		
-		//Add UNDO AND EXPORT BUTTONS HERE
 		
 		buttonPane = new JPanel();
 		buttonPane.add(newButton);
 		buttonPane.add(deleteButton);
 		buttonPane.add(editButton);
-		buttonPane.add(refreshButton);
 		buttonPane.add(undoButton);
 		buttonPane.add(exportButton);
-		buttonPane.setBackground(frameColor);
 		
 		c.fill = GridBagConstraints.HORIZONTAL;
-		c.gridwidth = 3;
+		c.gridwidth = 2;
 		c.gridx = 0;
 		c.gridy = 0;
 		homePane.add(searchBar, c);
 
+		c.gridwidth = 1;
 		c.weightx = 0.5;
-		c.gridx = 4;
+		c.gridx = 3;
 		homePane.add(sortByMenu, c);
+		
+		c.gridx = 4;
+		homePane.add(orderByMenu, c);
 
 		c.gridx = 0;
 		c.gridy = 1;
@@ -171,26 +158,26 @@ public class HomePage extends JFrame {
 		c.gridy = 2;
 		homePane.add(buttonPane, c);
 		
-		homePane.setBackground(frameColor);
-		
 		add(homePane);
 		pack();
 		setLocationRelativeTo(null);
 		setVisible(true);
 	}
 	
-	protected TableModel sortModel(Connection conn, String param) {
+	//Returns a version of the table that is sorted by a given parameter in asc/desc order (direction)
+	private TableModel sortModel(Connection conn, String param, String direction) {
 		model.setRowCount(0);
 		try {
-			ResultSet result = Sql.sortBy(conn, param);
-			String id, name, quantity, tags, dateAdded;
+			ResultSet result = Sql.sortBy(conn, param, direction);
+			String id, name, quantity, tags, location, dateAdded;
 			while (result.next()) {
 				id = result.getString(1);
 				name = result.getString(2);
 				quantity = result.getString(3);
 				tags = result.getString(4);
-				dateAdded = result.getString(5);
-				String[] row = {id, name, quantity, tags, dateAdded};
+				location = result.getString(5);
+				dateAdded = result.getString(6);
+				String[] row = {id, name, quantity, tags, location, dateAdded};
 				model.addRow(row);
 			}
 		} 
@@ -200,9 +187,15 @@ public class HomePage extends JFrame {
 		return model;
 	}
 	
+	//Returns a version of the table that displays items with certain parameters
 	private TableModel searchModel(Connection conn, String param) {
 		model.setRowCount(0);
-		String sql = "select * from items where id like ? or name like ? or quantity like ? or tags like ? or DateAdded like ?";
+		String sql = "select * from items where id like ?"
+				+ " or name like ?"
+				+ " or quantity like ?"
+				+ " or tags like ?"
+				+ " or location like ?"
+				+ " or DateAdded like ?";
 		try {
 			PreparedStatement preparedStatement = conn.prepareStatement(sql);
 			preparedStatement.setString(1, "%" + param + "%");
@@ -210,15 +203,17 @@ public class HomePage extends JFrame {
 			preparedStatement.setString(3, "%" + param + "%");
 			preparedStatement.setString(4, "%" + param + "%");
 			preparedStatement.setString(5, "%" + param + "%");
+			preparedStatement.setString(6, "%" + param + "%");
 			ResultSet result = preparedStatement.executeQuery();
-			String id, name, quantity, tags, dateAdded;
+			String id, name, quantity, tags, location, dateAdded;
 			while (result.next()) {
 				id = result.getString(1);
 				name = result.getString(2);
 				quantity = result.getString(3);
 				tags = result.getString(4);
-				dateAdded = result.getString(5);
-				String[] row = {id, name, quantity, tags, dateAdded};
+				location = result.getString(5);
+				dateAdded = result.getString(6);
+				String[] row = {id, name, quantity, tags, location, dateAdded};
 				model.addRow(row);
 			}
 		} 
@@ -228,20 +223,22 @@ public class HomePage extends JFrame {
 		return model;
 	}
 	
-	private TableModel getModel(Connection conn) {
+	//Returns the data used in the JTable
+	static TableModel getModel(Connection conn) {
 		model.setRowCount(0);
 		String sql = "select * from items";
 		try {
 			PreparedStatement preparedStatement = conn.prepareStatement(sql);
 			ResultSet result = preparedStatement.executeQuery();
-			String id, name, quantity, tags, dateAdded;
+			String id, name, quantity, tags, location, dateAdded;
 			while (result.next()) {
 				id = result.getString(1);
 				name = result.getString(2);
 				quantity = result.getString(3);
 				tags = result.getString(4);
-				dateAdded = result.getString(5);
-				String[] row = {id, name, quantity, tags, dateAdded};
+				location = result.getString(5);
+				dateAdded = result.getString(6);
+				String[] row = {id, name, quantity, tags, location, dateAdded};
 				model.addRow(row);
 			}
 		} 
@@ -256,26 +253,32 @@ public class HomePage extends JFrame {
 		return icon;
 	}
 	
+	//Prevents Undo from re-adding deleted items multiple items
 	public void undoLast(LastAction last) {
-		if (last.getType() == LastAction.Type.DELETE) {
-			Sql.insert(writeConn, last.getItem());
+		if (!alreadyDone) {
+			if (last.getType() == LastAction.Type.DELETE) {
+				Sql.insert(writeConn, last.getItem());
+			}
+			else { //Last Action was update action
+				Sql.update(writeConn, last.getItem(), last.getItem().getId());
+			}
 		}
-		else { //Last Action was update action
-			Sql.update(writeConn, last.getItem(), last.getItem().getId());
-		}
+		alreadyDone = true;
 	}
 	
+	//Another connection object for the file writer
 	public void setConnection(Connection conn) {
 		writeConn = conn;
 	}
 	
-	public Connection getConnection() {
+	public static Connection getConnection() {
 		return writeConn;
 	}
 	
-	public void exportToFile(String fileName) throws IOException {
+	//Retrieves data from tableModel, writes to .csv file with given name and location
+	public static void exportToCSVFile(String fileName, String location) throws IOException {
 		String path = System.getProperty("user.home");
-	    FileWriter fileWriter = new FileWriter(path+"\\Desktop\\"+ fileName + ".csv");
+	    FileWriter fileWriter = new FileWriter(path+"\\" + location +"\\"+ fileName + ".csv");
 	    PrintWriter printWriter = new PrintWriter(fileWriter);
 	    TableModel writeModel = getModel(getConnection());
 	    String text = "";
@@ -303,6 +306,7 @@ public class HomePage extends JFrame {
 	    System.out.println("File " + fileName + " created");
 	}
 
+	//Delete and Update Menus create actions that can be undone
 	public static void createLastAction(Item item, LastAction.Type type) {
 		// TODO Auto-generated method stub
 		last = new LastAction(item, type);
