@@ -1,7 +1,7 @@
 # SeniorProject
 How to use
 -------------
-mySQL Installation:
+mySQL Installation:  
 Go to https://dev.mysql.com/downloads/  
 Click the link to download "Connector/J"  
 When finished downloading, open "MySql Installer.exe"  
@@ -23,12 +23,15 @@ Click next and enter the root password
 Click next then execute to apply configurations  
 Click finish, next, then finish  
 
-mySQL Server Setup:
+mySQL Server Setup:  
 Open mySQL workbench and create a new connection, note its name
 Close mySQL workbench
 
-Run application:
-
+Run application:  
+Download the Repository as a zip file  
+Extract the files  
+Double click the invenManager.jar file  
+Login using the connection name, and mysql username and password  
 
 Files
 ------------
