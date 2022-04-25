@@ -1,8 +1,37 @@
 # SeniorProject
 How to use
 -------------
-Stuff
+mySQL Installation:
+Go to https://dev.mysql.com/downloads/  
+Click the link to download "Connector/J"  
+When finished downloading, open "MySql Installer.exe"  
+Click the 'Add' Button  
+If it opens automatically, make sure "developer default" is checked and click next  
+Click Next to skip the check requirements page, click yes if prompted  
+Click execute to download the selected products  
+Click execute to install the selected products  
+Click next  
+Click next, making no changes to the server configuration  
+Click next to use the default authentication  
+In the "Accounts and Roles" Section: create a root password, optionally create a non root user  
+In the "Windows Service" Section: leave options as the defaults and click next  
+Click execute to Apply the configuration  
+Click Finish  
+Click Next to go to rounter configuration  
+Leave settings as defaults and click finish  
+Click next and enter the root password  
+Click next then execute to apply configurations  
+Click finish, next, then finish  
 
+mySQL Server Setup:
+Open mySQL workbench and create a new connection, note its name
+Close mySQL workbench
+
+Run application:
+
+
+Files
+------------
 Main.java - starts the application  
 LoginScreen.java - creates the login screen to access the application  
 HomePage.java - creates the application Home Page, displays table representing the database contents and buttons to navitage to other menus 
