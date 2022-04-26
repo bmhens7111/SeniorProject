@@ -3,6 +3,9 @@ package database;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -162,17 +165,25 @@ public class UpdateMenu extends JFrame {
 	
 	private String[] readFile(String fileName) {
 		List<String> contents = new ArrayList<String>();
-		InputStream res = Main.class.getResourceAsStream("/" + fileName);
-		BufferedReader br = null;
-		br = new BufferedReader(new InputStreamReader(res));
-	    String line;
-	    try {
-			while ((line = br.readLine()) != null) {
-				contents.add(line);
+		String path = System.getProperty("user.home");
+		File file = new File(path+"\\documents\\"+ fileName);
+		if (file.exists()) {
+			BufferedReader br = null;
+			try {
+				br = new BufferedReader(new FileReader(file));
+			} catch (FileNotFoundException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		    String line;
+		    try {
+				while ((line = br.readLine()) != null) {
+					contents.add(line);
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		return contents.toArray(new String[0]);
 	}
