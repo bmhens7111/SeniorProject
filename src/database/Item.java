@@ -57,7 +57,9 @@ public class Item {
 				tagString = tagString.concat(itemTags[i] + ", ");
 			}
 		}
-		tagString = tagString.substring(0, tagString.length()-2);
+		if (tagString.length() > 2) {
+			tagString = tagString.substring(0, tagString.length()-2);
+		}
 		return tagString;
 	}
 	
