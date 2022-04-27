@@ -70,37 +70,23 @@ public class NewMenu extends JFrame {
 									yesButton.addActionListener(
 											new ActionListener() {
 												public void actionPerformed(ActionEvent e) {
-													Item newItem = new Item(1, "", 1, "");
+													String sql = "Update items "
+															+ " set quantity=? "
+															+ "where id=?";
+													PreparedStatement preparedStatement;
 													try {
-														ResultSet rs = Sql.selectWhereId(conn, item.getId());
-														rs.next();
-														newItem.setId(rs.getInt(1));
-														newItem.setName(rs.getString(2));
-														newItem.setQuantity(rs.getInt(3));
-														String tag = "";
-														String tagResult = rs.getString(4);
-														int tagIndex = 0;
-														for (int i=0; i<tagResult.length(); i++) {
-															if (tagResult.charAt(i) == ' ' || i==tagResult.length()-1) {
-																//Do Nothing
-															}
-															else if (tagResult.charAt(i) == ',') {
-																newItem.setTags(tagIndex, tag);
-																tagIndex++;
-																tag = "";
-															}
-															else {
-																tag = tag + (tagResult.charAt(i));
-															}
-														}
+														preparedStatement = conn.prepareStatement(sql);
+														preparedStatement.setInt(1, rs.getInt(3) + Integer.parseInt(quantityField.getText()));
+														preparedStatement.setInt(2, item.getId());
+														preparedStatement.executeUpdate();
+														System.out.println(preparedStatement);
+														System.out.println("UPDATE MENU: " + item.getName() + " updated");
 													}
-													catch (SQLException e1) {
+													catch (SQLException e2) {
 														// TODO Auto-generated catch block
-														e1.printStackTrace();
+														e2.printStackTrace();
 													}
-													int newQuant = item.getQuantity() + newItem.getQuantity();
-													newItem.setQuantity(newQuant);
-													Sql.update(conn, newItem, newItem.getId());
+													HomePage.table.setModel(HomePage.getModel(conn));
 													frame.dispose();
 													NewMenu.this.dispose();
 												}
