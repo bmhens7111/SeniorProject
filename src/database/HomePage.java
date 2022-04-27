@@ -309,6 +309,7 @@ public class HomePage extends JFrame {
 			}
 			else { //Last Action was update action
 				Sql.update(writeConn, last.getItem(), last.getItem().getId());
+				HomePage.table.setModel(HomePage.getModel(getConnection()));
 			}
 		}
 		else {

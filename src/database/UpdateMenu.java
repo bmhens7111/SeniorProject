@@ -40,7 +40,7 @@ public class UpdateMenu extends JFrame {
 			id = result.getInt(1);
 			name = result.getString(2);
 			quantity = result.getInt(3);
-			oldItem.setId(id);
+			oldItem.setId(oldID);
 			oldItem.setName(name);
 			oldItem.setQuantity(quantity);
 			String tag = "";
@@ -73,22 +73,10 @@ public class UpdateMenu extends JFrame {
 		String[] locations = readFile("locations.txt");
 		JComboBox<String> locationDropDown = new JComboBox<String>(locations);
 		
-		InputStream res = Main.class.getResourceAsStream("/locations.txt");
-		BufferedReader br = null;
-		br = new BufferedReader(new InputStreamReader(res));
-	    String line;
-	    int i = 0;
-	    try {
-			while ((line = br.readLine()) != null) {
-				if (line.equals(location)) {
-					locationDropDown.setSelectedIndex(i);
-				}
-				i++;
+		for (int i=0; i<locations.length; i++) {
+			if (locations[i].equals(location)) {
+				locationDropDown.setSelectedIndex(i);
 			}
-		}
-	    catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 		
 		DefaultListModel<String> model = new DefaultListModel<String>();
@@ -105,6 +93,7 @@ public class UpdateMenu extends JFrame {
 				new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						HomePage.createLastAction(oldItem, LastAction.Type.UPDATE);
+						HomePage.alreadyDone = false;
 						int newId = Integer.parseInt(idField.getText());
 						String name = nameField.getText();
 						int quantity  = Integer.parseInt(quantityField.getText());
